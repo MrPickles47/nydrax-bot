@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const bot = new TelegramBot(process.env.BOT_TOKEN, {
+const bot = new TelegramBot(process.env.TELEGRAM_TOKEN, {
   polling: true,
 });
 
