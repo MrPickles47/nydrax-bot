@@ -1,37 +1,49 @@
 import TelegramBot from "node-telegram-bot-api";
 import dotenv from "dotenv";
+import OpenAI from "openai";
+import { logInfo, logError, logUser } from "./log.js";
+
 dotenv.config();
-
-import { handleStart } from "./handlers/start.js";
-import { handleInfo } from "./handlers/info.js";
-import { handleAI } from "./handlers/ai.js";
-
-import { askAI } from "./core/ai.js";
 
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, {
   polling: true,
 });
 
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+// Log inicial
+logInfo("🚀 Nydrax AI Bot iniciado");
+
 bot.on("message", async (msg) => {
   const chatId = msg.chat.id;
   const text = msg.text;
 
+  logUser(chatId, text); // salva no log tudo que o usuário manda
+
   if (!text) return;
 
-  // Comandos
-  if (text === "/start") return handleStart(bot, chatId);
-  if (text === "/info") return handleInfo(bot, chatId);
+  bot.sendMessage(chatId, "🧠 Processando...");
 
-  // Comando /ai pergunta específica
-  if (text.startsWith("/ai")) {
-    const pergunta = text.replace("/ai", "").trim();
-    if (pergunta.length === 0)
-      return bot.sendMessage(chatId, "Digite algo após /ai");
-    return handleAI(bot, chatId, pergunta);
+  try {
+    const response = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: "Você é o Nydrax AI Core, o assistente do Lucas." },
+        { role: "user", content: text }
+      ],
+    });
+
+    const aiReply = response.choices[0].message.content;
+
+    logInfo(`Resposta enviada ao usuário: ${aiReply}`);
+
+    bot.sendMessage(chatId, aiReply);
+  } catch (error) {
+    console.error(error);
+    logError(error.message);
+
+    bot.sendMessage(chatId, "❌ Erro ao contactar o Nydrax AI Core.");
   }
-
-  // Resposta padrão: mandar pra IA
-  await bot.sendMessage(chatId, "🧠 Processando...");
-  const resposta = await askAI(text);
-  bot.sendMessage(chatId, resposta);
 });
