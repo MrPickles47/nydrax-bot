@@ -2,6 +2,10 @@ import TelegramBot from "node-telegram-bot-api";
 import dotenv from "dotenv";
 dotenv.config();
 
+import { handleStart } from "./handlers/start.js";
+import { handleInfo } from "./handlers/info.js";
+import { handleAI } from "./handlers/ai.js";
+
 import { askAI } from "./core/ai.js";
 
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, {
@@ -14,13 +18,20 @@ bot.on("message", async (msg) => {
 
   if (!text) return;
 
-  await bot.sendMessage(chatId, "🧠 Processando...");
+  // Comandos
+  if (text === "/start") return handleStart(bot, chatId);
+  if (text === "/info") return handleInfo(bot, chatId);
 
-  try {
-    const reply = await askAI(text);
-    await bot.sendMessage(chatId, reply);
-  } catch (err) {
-    console.error(err);
-    await bot.sendMessage(chatId, "❌ Erro ao contactar o Nydrax AI Core.");
+  // Comando /ai pergunta específica
+  if (text.startsWith("/ai")) {
+    const pergunta = text.replace("/ai", "").trim();
+    if (pergunta.length === 0)
+      return bot.sendMessage(chatId, "Digite algo após /ai");
+    return handleAI(bot, chatId, pergunta);
   }
+
+  // Resposta padrão: mandar pra IA
+  await bot.sendMessage(chatId, "🧠 Processando...");
+  const resposta = await askAI(text);
+  bot.sendMessage(chatId, resposta);
 });
