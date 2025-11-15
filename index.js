@@ -1,23 +1,26 @@
 import TelegramBot from "node-telegram-bot-api";
 import dotenv from "dotenv";
+import { env } from "./config/env.js";
+
+import startCommand from "./commands/start.js";
+import menuCommand from "./commands/menu.js";
+import helpCommand from "./commands/help.js";
 
 dotenv.config();
 
-// Pega o token da variável do Railway
-const token = process.env.TELEGRAM_BOT_TOKEN;
-
-// Verificação caso a variável não esteja carregando
-if (!token) {
-  console.error("❌ ERRO: Variável TELEGRAM_BOT_TOKEN não encontrada!");
-  process.exit(1);
-}
-
-const bot = new TelegramBot(token, {
+const bot = new TelegramBot(env.botToken, {
   polling: true,
 });
 
-// Resposta inicial do bot
+console.log("🔥 Nydrax iniciado...");
+
+// Mensagens de texto
 bot.on("message", (msg) => {
-  const chatId = msg.chat.id;
-  bot.sendMessage(chatId, "🔥 Nydrax online.\nComo posso ajudar?");
+  const text = msg.text;
+
+  if (text === "/start") return startCommand(bot, msg);
+  if (text === "/menu") return menuCommand(bot, msg);
+  if (text === "/help") return helpCommand(bot, msg);
+
+  bot.sendMessage(msg.chat.id, "📡 Comando não reconhecido.");
 });
