@@ -1,43 +1,44 @@
-import TelegramBot from "node-telegram-bot-api";
-
 export function sendMainMenu(bot, chatId) {
-  const options = {
+  bot.sendMessage(chatId, "📍 *Menu principal — Nydrax AI*", {
+    parse_mode: "Markdown",
     reply_markup: {
       inline_keyboard: [
         [
-          { text: "🤖 IA", callback_data: "ia" },
-          { text: "🔧 Ferramentas", callback_data: "tools" }
+          { text: "🤖 IA — Perguntar", callback_data: "ask_ai" }
         ],
         [
-          { text: "📊 Painel", callback_data: "panel" },
-          { text: "🆘 Suporte", callback_data: "support" }
+          { text: "⚙ Ferramentas", callback_data: "tools" },
+          { text: "📊 Status", callback_data: "status" }
+        ],
+        [
+          { text: "🧹 Limpar Tela", callback_data: "clear" }
         ]
       ]
     }
-  };
-
-  bot.sendMessage(chatId, "📌 Menu principal do Nydrax AI", options);
+  });
 }
 
 export function handleMenuCallbacks(bot) {
-  bot.on("callback_query", (query) => {
+  bot.on("callback_query", async (query) => {
     const chatId = query.message.chat.id;
-    const data = query.data;
+    const action = query.data;
 
-    if (data === "ia") {
-      bot.sendMessage(chatId, "🤖 Acessando módulo de IA...");
+    if (action === "ask_ai") {
+      bot.sendMessage(chatId, "✍️ Manda sua pergunta para a IA!");
     }
 
-    if (data === "tools") {
-      bot.sendMessage(chatId, "🔧 Ferramentas disponíveis...");
+    if (action === "tools") {
+      bot.sendMessage(chatId, "🛠 Ferramentas em construção!");
     }
 
-    if (data === "panel") {
-      bot.sendMessage(chatId, "📊 Abrindo painel...");
+    if (action === "status") {
+      bot.sendMessage(chatId, "📊 *Status do sistema:*\nTudo operando normalmente.", {
+        parse_mode: "Markdown"
+      });
     }
 
-    if (data === "support") {
-      bot.sendMessage(chatId, "🆘 Suporte Nydrax aberto!");
+    if (action === "clear") {
+      bot.sendMessage(chatId, "✨ Limpei! Pode continuar.");
     }
   });
 }
